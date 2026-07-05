@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c; --surface:#1e2230; --surface-hi:#262b3c; --paper:#f2efe9;
+    --paper-dim:#c9c6bd; --brass:#e8a33d; --clothblue:#7fa0c2; --muted:#8b90a0;
+    --hairline:rgba(242,239,233,0.09); --good:#8fb996;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .display{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh;}
+
+  /* ---------- sidebar ---------- */
+  .sidebar{border-right:1px solid var(--hairline);padding:24px 18px;display:flex;flex-direction:column;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin-bottom:36px;padding-left:6px;}
+  .logo .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);box-shadow:0 0 8px var(--brass);}
+  .navsec{margin-bottom:22px;}
+  .navsec h6{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;padding-left:10px;}
+  .navitem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:14px;color:var(--paper-dim);cursor:pointer;}
+  .navitem:hover{background:var(--surface);color:var(--paper);}
+  .navitem.active{background:var(--surface);color:var(--paper);}
+  .navitem.active .ic{color:var(--brass);}
+  .ic{width:16px;text-align:center;color:var(--muted);}
+  .sidebar-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--surface);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+  .sidebar-foot .name{font-size:13px;font-weight:600;}
+  .sidebar-foot .streak{font-size:11px;color:var(--brass);}
+
+  /* ---------- main ---------- */
+  .main{padding:32px 40px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+  .greeting h1{font-size:26px;margin:0 0 4px;font-weight:600;}
+  .greeting p{margin:0;color:var(--muted);font-size:13.5px;font-style:italic;}
+  .greeting p.display{font-family:'Fraunces',serif;}
+  .top-actions{display:flex;align-items:center;gap:14px;}
+  .bell{position:relative;width:38px;height:38px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .bell .badge{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--brass);}
+
+  /* ---------- stat cards ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;}
+  .stat-card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+  .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .stat-card .value{font-family:'Fraunces',serif;font-size:30px;font-weight:600;}
+  .stat-card .delta{font-size:11.5px;color:var(--good);margin-top:6px;}
+  .sparkline{position:absolute;bottom:0;left:0;right:0;height:34px;opacity:.5;}
+
+  /* ---------- content grid ---------- */
+  .content-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:22px;margin-bottom:20px;}
+  .card h3{font-family:'Fraunces',serif;font-size:16px;margin:0 0 16px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .card h3 a{font-family:'Inter',sans-serif;font-size:12px;color:var(--brass);font-weight:500;cursor:pointer;}
+
+  /* currently reading */
+  .book-progress{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--hairline);}
+  .book-progress:last-child{border-bottom:none;}
+  .mini-cover{width:44px;height:60px;border-radius:5px;flex-shrink:0;}
+  .book-progress .meta{flex:1;}
+  .book-progress .meta b{display:block;font-size:14px;margin-bottom:2px;}
+  .book-progress .meta span{font-size:12px;color:var(--muted);}
+  .bar-track{height:5px;border-radius:3px;background:rgba(255,255,255,0.08);margin-top:8px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--brass),#f5c876);border-radius:3px;}
+
+  /* achievements */
+  .badge-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .badge{width:56px;height:56px;border-radius:14px;background:var(--surface-hi);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--hairline);}
+  .badge.locked{opacity:.25;}
+
+  /* calendar heat */
+  .heat-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;}
+  .heat-cell{aspect-ratio:1;border-radius:3px;background:rgba(232,163,61,var(--v));}
+
+  /* upcoming */
+  .up-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--hairline);align-items:center;}
+  .up-item:last-child{border-bottom:none;}
+  .up-date{width:42px;text-align:center;background:var(--surface-hi);border-radius:8px;padding:6px 0;font-size:11px;}
+  .up-date b{display:block;font-family:'Fraunces',serif;font-size:15px;}
+  .up-item .meta b{display:block;font-size:13px;}
+  .up-item .meta span{font-size:11.5px;color:var(--muted);}
+
+  /* ring */
+  .ring-card{display:flex;align-items:center;gap:18px;}
+  .ring{position:relative;width:84px;height:84px;flex-shrink:0;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-label b{font-family:'Fraunces',serif;font-size:15px;}
+  .ring-label span{font-size:9px;color:var(--muted);}
+
+  @media (max-width:980px){
+    .layout{grid-template-columns:1fr;}
+    .sidebar{display:none;}
+    .stat-row, .content-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo"><span class="dot"></span>BookNest</div>
+    <div class="navsec">
+      <h6>Overview</h6>
+      <div class="navitem active"><span class="ic">◆</span>Dashboard</div>
+      <div class="navitem"><span class="ic">▤</span>Library</div>
+      <div class="navitem"><span class="ic">◔</span>Analytics</div>
+    </div>
+    <div class="navsec">
+      <h6>Community</h6>
+      <div class="navitem"><span class="ic">◐</span>Reading Rooms</div>
+      <div class="navitem"><span class="ic">✦</span>Book Clubs</div>
+      <div class="navitem"><span class="ic">⇄</span>Exchange</div>
+      <div class="navitem"><span class="ic">☰</span>Discussions</div>
+    </div>
+    <div class="navsec">
+      <h6>Account</h6>
+      <div class="navitem"><span class="ic">◎</span>Notifications</div>
+      <div class="navitem"><span class="ic">✎</span>Profile</div>
+    </div>
+    <div class="sidebar-foot">
+      <div class="avatar"></div>
+      <div>
+        <div class="name">Priya M.</div>
+        <div class="streak">🔥 14 day streak</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="greeting">
+        <h1>Good evening, Priya</h1>
+        <p class="display">"A reader lives a thousand lives before he dies." — George R. R. Martin</p>
+      </div>
+      <div class="top-actions">
+        <div class="bell"><span class="badge"></span>◔</div>
+        <div class="avatar"></div>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="label">Pages read today</div>
+        <div class="value">42</div>
+        <div class="delta">↑ 18% vs. yesterday</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Current streak</div>
+        <div class="value">14 days</div>
+        <div class="delta">Longest: 31 days</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Books this year</div>
+        <div class="value">32 / 40</div>
+        <div class="delta">On pace to finish early</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Reading time today</div>
+        <div class="value">51m</div>
+        <div class="delta">2 focus sessions</div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div>
+        <div class="card">
+          <h3>Currently reading <a>See all</a></h3>
+          <div class="book-progress">
+            <div class="mini-cover" style="background:linear-gradient(135deg,#7fa0c2,#3f5876);"></div>
+            <div class="meta">
+              <b>The Tide Room</b>
+              <span>N. Okafor · page 214 of 340</span>
+              <div class="bar-track"><div class="bar-fill" style="width:63%"></div></div>
+            </div>
+          </div>
+          <div class="book-progress">
+            <div class="mini-cover" style="background:linear-gradient(135deg,#b98fb0,#6f4f68);"></div>
+            <div class="meta">
+              <b>Nine Winters</b>
+              <span>Y. Park · page 58 of 410</span>
+              <div class="bar-track"><div class="bar-fill" style="width:14%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Reading activity <a>Full analytics</a></h3>
+          <div class="heat-grid" id="heat"></div>
+        </div>
+
+        <div class="card">
+          <h3>Achievements <a>All badges</a></h3>
+          <div class="badge-row">
+            <div class="badge">🔥</div>
+            <div class="badge">📚</div>
+            <div class="badge">🌙</div>
+            <div class="badge">✍️</div>
+            <div class="badge locked">🏆</div>
+            <div class="badge locked">🗺️</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card ring-card">
+          <div class="ring">
+            <svg width="84" height="84">
+              <circle cx="42" cy="42" r="36" stroke="var(--hairline)" stroke-width="7" fill="none"/>
+              <circle cx="42" cy="42" r="36" stroke="var(--brass)" stroke-width="7" fill="none"
+                stroke-dasharray="226" stroke-dashoffset="70" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-label"><b>80%</b><span>goal</span></div>
+          </div>
+          <div>
+            <b style="font-size:14px;">2026 Reading Goal</b>
+            <p style="font-size:12px;color:var(--muted);margin:4px 0 0;">32 of 40 books · 8 to go</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Upcoming <a>Calendar</a></h3>
+          <div class="up-item">
+            <div class="up-date"><b>08</b>JUL</div>
+            <div class="meta"><b>Slow Fiction Club</b><span>Discussion · Ch. 12–18</span></div>
+          </div>
+          <div class="up-item">
+            <div class="up-date"><b>10</b>JUL</div>
+            <div class="meta"><b>Exchange pickup</b><span>Field Notes with @marcusr</span></div>
+          </div>
+          <div class="up-item">
+            <div class="up-date"><b>12</b>JUL</div>
+            <div class="meta"><b>Night Owls vote closes</b><span>Pick the August book</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Notifications <a>See all</a></h3>
+          <div class="up-item">
+            <div class="up-date" style="background:transparent;">💬</div>
+            <div class="meta"><b>New comment</b><span>on your review of Nine Winters</span></div>
+          </div>
+          <div class="up-item">
+            <div class="up-date" style="background:transparent;">⇄</div>
+            <div class="meta"><b>Exchange request</b><span>from @lena_reads</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const heat = document.getElementById('heat');
+  for (let i = 0; i < 70; i++) {
+    const v = (Math.random() * 0.9 + 0.05).toFixed(2);
+    const cell = document.createElement('div');
+    cell.className = 'heat-cell';
+    cell.style.setProperty('--v', v);
+    heat.appendChild(cell);
+  }
+</script>
+</body>
+</html>

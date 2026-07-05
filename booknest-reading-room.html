@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — Reading Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f2efe9; --muted:#c9c6bd; --hairline:rgba(242,239,233,0.14); --brass:#e8a33d;
+    --room-a:#1b2230; --room-b:#0e1420; --accent:#e8a33d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:'Inter',sans-serif;color:var(--paper);
+    background:linear-gradient(160deg,var(--room-a),var(--room-b));
+    min-height:100vh;-webkit-font-smoothing:antialiased;
+    transition:background 1.2s ease;
+    overflow-x:hidden;
+  }
+  .display{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- ambience canvas layer ---------- */
+  .ambience{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .rain span{position:absolute;top:-10%;width:1px;height:60px;background:linear-gradient(rgba(180,200,230,0.5),transparent);animation:fall linear infinite;}
+  @keyframes fall{to{transform:translateY(120vh);}}
+  .embers span{position:absolute;bottom:-5%;width:3px;height:3px;border-radius:50%;background:var(--brass);opacity:.7;animation:rise linear infinite;}
+  @keyframes rise{to{transform:translateY(-110vh) translateX(20px);opacity:0;}}
+  .stars span{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:.2;}50%{opacity:1;}}
+  .leaves span{position:absolute;top:-8%;width:8px;height:8px;background:#8fb996;border-radius:0 60% 0 60%;animation:driftdown linear infinite;}
+  @keyframes driftdown{to{transform:translateY(120vh) rotate(360deg);}}
+  .waves span{position:absolute;bottom:0;width:200%;height:60px;background:radial-gradient(50% 100% at 50% 0%, rgba(127,160,194,0.25), transparent);animation:wavemove 6s ease-in-out infinite;}
+  @keyframes wavemove{0%,100%{transform:translateX(-10%);}50%{transform:translateX(0%);}}
+
+  /* ---------- layout ---------- */
+  .wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:28px 32px 60px;}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:17px;opacity:.9;}
+  .logo .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);}
+  .exit{font-size:13px;color:var(--muted);cursor:pointer;border:1px solid var(--hairline);padding:8px 16px;border-radius:999px;}
+  .clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);}
+
+  .room-title{text-align:center;margin-bottom:36px;}
+  .room-title .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);}
+  .room-title h1{font-size:34px;margin:8px 0 0;font-weight:600;}
+
+  /* room picker */
+  .room-picker{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:44px;}
+  .room-chip{
+    padding:9px 16px;border-radius:999px;border:1px solid var(--hairline);
+    font-size:13px;cursor:pointer;background:rgba(255,255,255,0.03);transition:.2s;
+  }
+  .room-chip.active{background:var(--brass);color:#181b26;border-color:var(--brass);font-weight:600;}
+
+  /* timer */
+  .timer-block{display:flex;flex-direction:column;align-items:center;margin-bottom:48px;}
+  .timer-ring{position:relative;width:220px;height:220px;}
+  .timer-ring svg{transform:rotate(-90deg);}
+  .timer-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .timer-label .time{font-family:'Fraunces',serif;font-size:48px;font-weight:600;}
+  .timer-label .mode{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+  .timer-controls{display:flex;gap:12px;margin-top:24px;}
+  .tbtn{
+    padding:11px 22px;border-radius:999px;font-size:13.5px;font-weight:600;cursor:pointer;
+    border:1px solid var(--hairline);background:rgba(255,255,255,0.04);transition:.15s;
+  }
+  .tbtn.primary{background:var(--brass);color:#181b26;border-color:var(--brass);}
+  .tbtn:hover{transform:translateY(-1px);}
+  .durations{display:flex;gap:8px;margin-top:16px;}
+  .dur{font-size:12px;color:var(--muted);cursor:pointer;padding:5px 10px;border-radius:8px;}
+  .dur.active{color:var(--brass);background:rgba(232,163,61,0.12);}
+
+  /* bottom controls: focus mode + together */
+  .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .panel{background:rgba(255,255,255,0.04);border:1px solid var(--hairline);border-radius:16px;padding:20px;backdrop-filter:blur(6px);}
+  .panel h4{font-family:'Fraunces',serif;font-size:15px;margin:0 0 12px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .toggle{width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,0.12);position:relative;cursor:pointer;transition:.2s;}
+  .toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;}
+  .toggle.on{background:var(--brass);}
+  .toggle.on::after{left:18px;}
+  .panel p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.6;}
+
+  .peer-row{display:flex;gap:10px;margin-top:10px;}
+  .peer{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--brass),#7fa0c2);border:2px solid rgba(255,255,255,0.15);position:relative;}
+  .peer .prog{position:absolute;bottom:-5px;left:0;right:0;text-align:center;font-size:8px;color:var(--muted);}
+
+  .focus-overlay{
+    position:fixed;inset:0;background:linear-gradient(160deg,var(--room-a),var(--room-b));
+    z-index:20;display:none;align-items:center;justify-content:center;flex-direction:column;
+  }
+  .focus-overlay.active{display:flex;}
+  .focus-overlay .time{font-family:'Fraunces',serif;font-size:96px;}
+  .focus-overlay .hint{color:var(--muted);font-size:13px;margin-top:18px;cursor:pointer;}
+
+  @media (max-width:640px){
+    .bottom-row{grid-template-columns:1fr;}
+    .timer-ring{width:170px;height:170px;}
+    .timer-label .time{font-size:36px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="ambience" id="ambience"></div>
+
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot"></span>BookNest</div>
+    <div class="clock" id="clock">—</div>
+    <div class="exit">Leave room</div>
+  </header>
+
+  <div class="room-title">
+    <span class="eyebrow">Virtual Reading Room</span>
+    <h1 class="display" id="roomName">Rainy Window</h1>
+  </div>
+
+  <div class="room-picker" id="roomPicker">
+    <div class="room-chip active" data-room="rain">Rainy Window</div>
+    <div class="room-chip" data-room="cabin">Mountain Cabin</div>
+    <div class="room-chip" data-room="night">Night Cityscape</div>
+    <div class="room-chip" data-room="forest">Forest</div>
+    <div class="room-chip" data-room="cafe">Cozy Café</div>
+  </div>
+
+  <div class="timer-block">
+    <div class="timer-ring">
+      <svg width="220" height="220">
+        <circle cx="110" cy="110" r="96" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none"/>
+        <circle id="timerArc" cx="110" cy="110" r="96" stroke="var(--brass)" stroke-width="8" fill="none"
+          stroke-dasharray="603" stroke-dashoffset="0" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear;"/>
+      </svg>
+      <div class="timer-label">
+        <div class="time" id="timeDisplay">25:00</div>
+        <div class="mode" id="modeLabel">Focus session</div>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <div class="tbtn primary" id="startBtn">Start</div>
+      <div class="tbtn" id="resetBtn">Reset</div>
+      <div class="tbtn" id="focusBtn">Enter focus mode</div>
+    </div>
+    <div class="durations">
+      <div class="dur active" data-min="25">25 min</div>
+      <div class="dur" data-min="45">45 min</div>
+      <div class="dur" data-min="60">60 min</div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="panel">
+      <h4>Ambient sound <div class="toggle on" id="soundToggle"></div></h4>
+      <p>A gentle looped soundscape matched to this room plays while you read. Muted by default on shared devices.</p>
+    </div>
+    <div class="panel">
+      <h4>Read Together <div class="toggle" id="togetherToggle"></div></h4>
+      <p id="togetherText">Off — reading solo right now.</p>
+      <div class="peer-row" id="peerRow" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="focus-overlay" id="focusOverlay">
+  <div class="time" id="focusTime">25:00</div>
+  <div class="hint" id="exitFocus">Move your mouse or tap to exit focus mode</div>
+</div>
+
+<script>
+  const ROOMS = {
+    rain:   { name: 'Rainy Window', a:'#1b2230', b:'#0e1420', accent:'#7fa0c2', fx:'rain' },
+    cabin:  { name: 'Mountain Cabin', a:'#2a1f18', b:'#140f0b', accent:'#e8a33d', fx:'embers' },
+    night:  { name: 'Night Cityscape', a:'#141830', b:'#080a18', accent:'#b98fb0', fx:'stars' },
+    forest: { name: 'Forest', a:'#1a271d', b:'#0c130e', accent:'#8fb996', fx:'leaves' },
+    cafe:   { name: 'Cozy Café', a:'#2a2015', b:'#160f09', accent:'#c98f6a', fx:'waves' },
+  };
+
+  const ambienceEl = document.getElementById('ambience');
+  const roomNameEl = document.getElementById('roomName');
+
+  function renderAmbience(fx) {
+    ambienceEl.innerHTML = '';
+    const layer = document.createElement('div');
+    layer.className = fx;
+    const count = { rain:60, embers:34, stars:70, leaves:26, waves:4 }[fx];
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('span');
+      if (fx === 'rain') {
+        s.style.left = Math.random()*100+'%';
+        s.style.animationDuration = (0.6+Math.random()*0.6)+'s';
+        s.style.animationDelay = Math.random()*2+'s';
+      } else if (fx === 'embers') {
+        s.style.left = 40+Math.random()*20+'%';
+        s.style.animationDuration = (4+Math.random()*3)+'s';
+        s.style.animationDelay = Math.random()*4+'s';
+      } else if (fx === 'stars') {
+        s.style.left = Math.random()*100+'%';
+        s.style.top = Math.random()*60+'%';
+        const size = 1+Math.random()*2;
+        s.style.width = size+'px'; s.style.height = size+'px';
+        s.style.animationDelay = Math.random()*3+'s';
+      } else if (fx === 'leaves') {
+        s.style.left = Math.random()*100+'%';
+        s.style.animationDuration = (6+Math.random()*4)+'s';
+        s.style.animationDelay = Math.random()*5+'s';
+      } else if (fx === 'waves') {
+        s.style.left = -50+(i*15)+'%';
+        s.style.animationDelay = i*0.6+'s';
+      }
+      layer.appendChild(s);
+    }
+    ambienceEl.appendChild(layer);
+  }
+
+  function setRoom(key) {
+    const r = ROOMS[key];
+    document.body.style.setProperty('--room-a', r.a);
+    document.body.style.setProperty('--room-b', r.b);
+    document.body.style.setProperty('--accent', r.accent);
+    document.body.style.background = `linear-gradient(160deg, ${r.a}, ${r.b})`;
+    document.getElementById('focusOverlay').style.background = `linear-gradient(160deg, ${r.a}, ${r.b})`;
+    roomNameEl.textContent = r.name;
+    renderAmbience(r.fx);
+    document.querySelectorAll('.room-chip').forEach(c => c.classList.toggle('active', c.dataset.room === key));
+  }
+
+  document.getElementById('roomPicker').addEventListener('click', (e) => {
+    const chip = e.target.closest('.room-chip');
+    if (chip) setRoom(chip.dataset.room);
+  });
+
+  setRoom('rain');
+
+  // live clock
+  function tickClock(){
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  // ---------- Pomodoro timer ----------
+  let totalSeconds = 25*60, secondsLeft = totalSeconds, running = false, timerHandle = null;
+  const CIRC = 603;
+  const timeDisplay = document.getElementById('timeDisplay');
+  const focusTime = document.getElementById('focusTime');
+  const arc = document.getElementById('timerArc');
+  const modeLabel = document.getElementById('modeLabel');
+
+  function fmt(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+
+  function render(){
+    const text = fmt(secondsLeft);
+    timeDisplay.textContent = text;
+    focusTime.textContent = text;
+    const frac = secondsLeft/totalSeconds;
+    arc.style.strokeDashoffset = CIRC*(1-frac);
+  }
+
+  function tick(){
+    if (secondsLeft > 0) { secondsLeft--; render(); }
+    else { pause(); modeLabel.textContent = 'Session complete'; }
+  }
+
+  function start(){
+    running = true;
+    document.getElementById('startBtn').textContent = 'Pause';
+    modeLabel.textContent = 'Focus session';
+    timerHandle = setInterval(tick, 1000);
+  }
+  function pause(){
+    running = false;
+    document.getElementById('startBtn').textContent = 'Start';
+    clearInterval(timerHandle);
+  }
+  document.getElementById('startBtn').addEventListener('click', () => running ? pause() : start());
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    pause(); secondsLeft = totalSeconds; modeLabel.textContent = 'Focus session'; render();
+  });
+  document.querySelectorAll('.dur').forEach(d => {
+    d.addEventListener('click', () => {
+      document.querySelectorAll('.dur').forEach(x => x.classList.remove('active'));
+      d.classList.add('active');
+      pause();
+      totalSeconds = parseInt(d.dataset.min)*60;
+      secondsLeft = totalSeconds;
+      render();
+    });
+  });
+  render();
+
+  // ---------- focus mode ----------
+  const overlay = document.getElementById('focusOverlay');
+  document.getElementById('focusBtn').addEventListener('click', () => overlay.classList.add('active'));
+  function exitFocus(){ overlay.classList.remove('active'); }
+  document.getElementById('exitFocus').addEventListener('click', exitFocus);
+  overlay.addEventListener('click', exitFocus);
+
+  // ---------- read together (simulated presence) ----------
+  const togetherToggle = document.getElementById('togetherToggle');
+  const togetherText = document.getElementById('togetherText');
+  const peerRow = document.getElementById('peerRow');
+  let togetherOn = false;
+  togetherToggle.addEventListener('click', () => {
+    togetherOn = !togetherOn;
+    togetherToggle.classList.toggle('on', togetherOn);
+    peerRow.style.display = togetherOn ? 'flex' : 'none';
+    if (togetherOn) {
+      togetherText.textContent = '2 friends reading with you right now.';
+      peerRow.innerHTML = `
+        <div class="peer"><span class="prog">61%</span></div>
+        <div class="peer"><span class="prog">34%</span></div>`;
+    } else {
+      togetherText.textContent = 'Off — reading solo right now.';
+    }
+  });
+
+  // ---------- sound toggle ----------
+  const soundToggle = document.getElementById('soundToggle');
+  let soundOn = true;
+  soundToggle.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundToggle.classList.toggle('on', soundOn);
+  });
+</script>
+
+</body>
+</html>
