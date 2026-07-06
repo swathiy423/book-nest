@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — Exchange Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c; --surface:#1e2230; --surface-hi:#262b3c; --paper:#f2efe9;
+    --paper-dim:#c9c6bd; --brass:#e8a33d; --clothblue:#7fa0c2; --muted:#8b90a0;
+    --hairline:rgba(242,239,233,0.09); --good:#8fb996;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .display{font-family:'Fraunces',serif;}
+
+  header{position:sticky;top:0;z-index:30;background:rgba(18,20,28,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--hairline);}
+  .topnav{display:flex;justify-content:space-between;align-items:center;padding:16px 32px;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:18px;}
+  .logo .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+
+  .layout{display:grid;grid-template-columns:1fr 420px;height:calc(100vh - 65px);}
+  .listcol{padding:24px 28px;overflow-y:auto;}
+  .mapcol{position:relative;background:#0d1522;border-left:1px solid var(--hairline);}
+
+  .head-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+  .head-row h1{font-size:24px;margin:0;font-weight:600;}
+  .btn{padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+  .btn-brass{background:var(--brass);color:var(--ink);}
+
+  .filter-row{display:flex;gap:9px;margin-bottom:20px;flex-wrap:wrap;}
+  .chip{padding:8px 14px;border-radius:999px;border:1px solid var(--hairline);font-size:12.5px;cursor:pointer;}
+  .chip.active{background:var(--brass);color:var(--ink);border-color:var(--brass);font-weight:600;}
+
+  .listing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .listing-card{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;overflow:hidden;cursor:pointer;transition:.15s;}
+  .listing-card:hover{border-color:rgba(232,163,61,0.4);transform:translateY(-3px);}
+  .listing-card.selected{border-color:var(--brass);}
+  .listing-cover{height:120px;}
+  .listing-body{padding:14px;}
+  .listing-body h4{font-size:13.5px;margin:0 0 3px;font-weight:600;}
+  .listing-body p{font-size:11.5px;color:var(--muted);margin:0 0 8px;}
+  .cond-tag{display:inline-block;font-size:10.5px;padding:3px 8px;border-radius:6px;background:rgba(143,185,150,0.15);color:var(--good);margin-bottom:8px;}
+  .owner-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+  .owner-row .av{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+
+  /* ---------- map ---------- */
+  .map-grid{position:absolute;inset:0;background-image:linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px);background-size:34px 34px;}
+  .pin{position:absolute;width:16px;height:16px;border-radius:50% 50% 50% 0;background:var(--brass);transform:rotate(-45deg);cursor:pointer;box-shadow:0 0 0 4px rgba(232,163,61,0.18);transition:.15s;}
+  .pin.active{background:var(--clothblue);box-shadow:0 0 0 6px rgba(127,160,194,0.25);}
+  .pin::after{content:'';position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:var(--ink);}
+  .pin-you{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 8px rgba(255,255,255,0.12);}
+  .map-caption{position:absolute;bottom:14px;left:14px;font-size:11px;color:var(--muted);background:rgba(18,20,28,0.7);padding:8px 12px;border-radius:8px;}
+
+  /* ---------- detail drawer ---------- */
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:420px;background:var(--surface);
+    border-left:1px solid var(--hairline);transform:translateX(100%);transition:transform .25s ease;
+    z-index:40;overflow-y:auto;
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{position:relative;height:200px;}
+  .drawer-close{position:absolute;top:16px;left:16px;width:32px;height:32px;border-radius:50%;background:rgba(18,20,28,0.6);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;}
+  .drawer-body{padding:22px;}
+  .drawer-body h2{font-family:'Fraunces',serif;font-size:21px;margin:0 0 4px;font-weight:600;}
+  .drawer-body p.author{color:var(--muted);font-size:13px;margin:0 0 16px;}
+  .drawer-owner{display:flex;align-items:center;gap:10px;padding:12px;background:var(--surface-hi);border-radius:12px;margin-bottom:18px;}
+  .drawer-owner .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+  .drawer-owner b{font-size:13.5px;display:block;}
+  .drawer-owner span{font-size:11.5px;color:var(--muted);}
+  .trust{color:var(--good);font-weight:600;}
+  .desc-block{font-size:13px;color:var(--paper-dim);line-height:1.6;margin-bottom:18px;}
+  .pref-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+  .pref-tag{font-size:11px;padding:5px 10px;border-radius:999px;background:rgba(232,163,61,0.12);color:var(--brass);}
+  .drawer-actions{display:flex;gap:10px;margin-bottom:20px;}
+  .drawer-actions .btn{flex:1;}
+  .btn-outline{background:transparent;border:1px solid var(--hairline);color:var(--paper);}
+
+  /* messaging */
+  .msg-thread{border-top:1px solid var(--hairline);padding-top:16px;}
+  .msg-thread h4{font-family:'Fraunces',serif;font-size:14px;margin:0 0 12px;}
+  .msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:12.5px;margin-bottom:8px;line-height:1.5;}
+  .msg.them{background:var(--surface-hi);border-bottom-left-radius:4px;}
+  .msg.me{background:var(--brass);color:var(--ink);margin-left:auto;border-bottom-right-radius:4px;}
+  .msg-input-row{display:flex;gap:8px;margin-top:12px;}
+  .msg-input-row input{flex:1;padding:10px 14px;border-radius:999px;border:1px solid var(--hairline);background:var(--ink);color:var(--paper);font-size:12.5px;outline:none;}
+  .msg-input-row input:focus{border-color:var(--brass);}
+  .send-btn{width:36px;height:36px;border-radius:50%;background:var(--brass);color:var(--ink);border:none;cursor:pointer;flex-shrink:0;}
+
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:35;display:none;}
+  .backdrop.open{display:block;}
+
+  @media (max-width:960px){
+    .layout{grid-template-columns:1fr;}
+    .mapcol{display:none;}
+    .drawer{width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topnav">
+    <div class="logo"><span class="dot"></span>BookNest</div>
+    <div class="avatar"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="listcol">
+    <div class="head-row">
+      <h1 class="display">Exchange Marketplace</h1>
+      <button class="btn btn-brass">+ List a book</button>
+    </div>
+    <div class="filter-row">
+      <div class="chip active">All conditions</div>
+      <div class="chip">Like new</div>
+      <div class="chip">Good</div>
+      <div class="chip">Well-loved</div>
+      <div class="chip">Near me (2mi)</div>
+    </div>
+
+    <div class="listing-grid" id="listingGrid">
+      <div class="listing-card" data-lat="30" data-lng="35" onclick="openListing(this,'Field Notes','M. Duchêne','Like new','Marcus R.','98%','#c98f6a,#7a4f37')">
+        <div class="listing-cover" style="background:linear-gradient(135deg,#c98f6a,#7a4f37);"></div>
+        <div class="listing-body">
+          <div class="cond-tag">Like new</div>
+          <h4>Field Notes</h4>
+          <p>M. Duchêne</p>
+          <div class="owner-row"><div class="av"></div>Marcus R. · 0.4mi away</div>
+        </div>
+      </div>
+      <div class="listing-card" data-lat="55" data-lng="60" onclick="openListing(this,'Nine Winters','Y. Park','Good','Lena W.','91%','#b98fb0,#6f4f68')">
+        <div class="listing-cover" style="background:linear-gradient(135deg,#b98fb0,#6f4f68);"></div>
+        <div class="listing-body">
+          <div class="cond-tag">Good</div>
+          <h4>Nine Winters</h4>
+          <p>Y. Park</p>
+          <div class="owner-row"><div class="av"></div>Lena W. · 1.1mi away</div>
+        </div>
+      </div>
+      <div class="listing-card" data-lat="20" data-lng="70" onclick="openListing(this,'The Tide Room','N. Okafor','Well-loved','Priya M.','96%','#7fa0c2,#3f5876')">
+        <div class="listing-cover" style="background:linear-gradient(135deg,#7fa0c2,#3f5876);"></div>
+        <div class="listing-body">
+          <div class="cond-tag">Well-loved</div>
+          <h4>The Tide Room</h4>
+          <p>N. Okafor</p>
+          <div class="owner-row"><div class="av"></div>Priya M. · 1.6mi away</div>
+        </div>
+      </div>
+      <div class="listing-card" data-lat="70" data-lng="25" onclick="openListing(this,'The Understory','R. Alvi','Like new','Jordan T.','88%','#8fb996,#4c6c53')">
+        <div class="listing-cover" style="background:linear-gradient(135deg,#8fb996,#4c6c53);"></div>
+        <div class="listing-body">
+          <div class="cond-tag">Like new</div>
+          <h4>The Understory</h4>
+          <p>R. Alvi</p>
+          <div class="owner-row"><div class="av"></div>Jordan T. · 2.0mi away</div>
+        </div>
+      </div>
+      <div class="listing-card" data-lat="42" data-lng="15" onclick="openListing(this,'Salt & Marrow','C. Vance','Good','Asha K.','93%','#e8a33d,#8a5f21')">
+        <div class="listing-cover" style="background:linear-gradient(135deg,#e8a33d,#8a5f21);"></div>
+        <div class="listing-body">
+          <div class="cond-tag">Good</div>
+          <h4>Salt &amp; Marrow</h4>
+          <p>C. Vance</p>
+          <div class="owner-row"><div class="av"></div>Asha K. · 2.3mi away</div>
+        </div>
+      </div>
+      <div class="listing-card" data-lat="65" data-lng="80" onclick="openListing(this,'Field Guide to Rivers','T. Grant','Well-loved','Sam O.','85%','#141830,#0c0f1e')">
+        <div class="listing-cover" style="background:linear-gradient(135deg,#141830,#0c0f1e);"></div>
+        <div class="listing-body">
+          <div class="cond-tag">Well-loved</div>
+          <h4>Field Guide to Rivers</h4>
+          <p>T. Grant</p>
+          <div class="owner-row"><div class="av"></div>Sam O. · 2.8mi away</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mapcol">
+    <div class="map-grid"></div>
+    <div class="pin-you" style="top:48%;left:46%;"></div>
+    <div class="pin" id="pin-0" style="top:30%;left:35%;" onclick="openListing(document.querySelectorAll('.listing-card')[0],'Field Notes','M. Duchêne','Like new','Marcus R.','98%','#c98f6a,#7a4f37')"></div>
+    <div class="pin" id="pin-1" style="top:55%;left:60%;" onclick="openListing(document.querySelectorAll('.listing-card')[1],'Nine Winters','Y. Park','Good','Lena W.','91%','#b98fb0,#6f4f68')"></div>
+    <div class="pin" id="pin-2" style="top:20%;left:70%;" onclick="openListing(document.querySelectorAll('.listing-card')[2],'The Tide Room','N. Okafor','Well-loved','Priya M.','96%','#7fa0c2,#3f5876')"></div>
+    <div class="pin" id="pin-3" style="top:70%;left:25%;" onclick="openListing(document.querySelectorAll('.listing-card')[3],'The Understory','R. Alvi','Like new','Jordan T.','88%','#8fb996,#4c6c53')"></div>
+    <div class="pin" id="pin-4" style="top:42%;left:15%;" onclick="openListing(document.querySelectorAll('.listing-card')[4],'Salt & Marrow','C. Vance','Good','Asha K.','93%','#e8a33d,#8a5f21')"></div>
+    <div class="pin" id="pin-5" style="top:65%;left:80%;" onclick="openListing(document.querySelectorAll('.listing-card')[5],'Field Guide to Rivers','T. Grant','Well-loved','Sam O.','85%','#141830,#0c0f1e')"></div>
+    <div class="map-caption">6 exchanges within 3 miles</div>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop" onclick="closeListing()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head" id="drawerCover" style="background:linear-gradient(135deg,#c98f6a,#7a4f37);">
+    <div class="drawer-close" onclick="closeListing()">✕</div>
+  </div>
+  <div class="drawer-body">
+    <h2 id="drawerTitle">Field Notes</h2>
+    <p class="author" id="drawerAuthor">M. Duchêne</p>
+
+    <div class="drawer-owner">
+      <div class="av"></div>
+      <div>
+        <b id="drawerOwner">Marcus R.</b>
+        <span>Trust score <span class="trust" id="drawerTrust">98%</span> · 34 successful exchanges</span>
+      </div>
+    </div>
+
+    <div class="desc-block" id="drawerCondition">Like new — read once, no marks, original dust jacket. Smoke-free home.</div>
+
+    <div class="pref-tags">
+      <div class="pref-tag">Wants: Sci-Fi</div>
+      <div class="pref-tag">Wants: Poetry</div>
+      <div class="pref-tag">Wants: Non-fiction</div>
+    </div>
+
+    <div class="drawer-actions">
+      <button class="btn btn-brass" style="flex:1;">Send exchange request</button>
+      <button class="btn btn-outline">♡ Save</button>
+    </div>
+
+    <div class="msg-thread">
+      <h4>Message Marcus</h4>
+      <div class="msg them">Hey! Still interested in trading for your copy of Nine Winters?</div>
+      <div class="msg me">Yes! Could do Saturday afternoon near the library?</div>
+      <div class="msg them">Works for me 👍</div>
+      <div class="msg-input-row">
+        <input type="text" placeholder="Write a message…" />
+        <button class="send-btn">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openListing(card, title, author, condition, owner, trust, gradient){
+    document.querySelectorAll('.listing-card').forEach(c => c.classList.remove('selected'));
+    if (card) card.classList.add('selected');
+    document.getElementById('drawerTitle').textContent = title;
+    document.getElementById('drawerAuthor').textContent = author;
+    document.getElementById('drawerOwner').textContent = owner;
+    document.getElementById('drawerTrust').textContent = trust;
+    document.getElementById('drawerCondition').textContent = condition + ' — read once, no marks. Smoke-free home.';
+    document.getElementById('drawerCover').style.background = 'linear-gradient(135deg,' + gradient + ')';
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('backdrop').classList.add('open');
+  }
+  function closeListing(){
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('backdrop').classList.remove('open');
+  }
+  document.querySelectorAll('.filter-row .chip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.filter-row .chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+</script>
+</body>
+</html>

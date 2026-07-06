@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — Book Clubs</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c; --surface:#1e2230; --surface-hi:#262b3c; --paper:#f2efe9;
+    --paper-dim:#c9c6bd; --brass:#e8a33d; --clothblue:#7fa0c2; --muted:#8b90a0;
+    --hairline:rgba(242,239,233,0.09); --good:#8fb996;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .display{font-family:'Fraunces',serif;}
+  a{text-decoration:none;color:inherit;}
+
+  header{position:sticky;top:0;z-index:20;background:rgba(18,20,28,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--hairline);}
+  .topnav{display:flex;justify-content:space-between;align-items:center;padding:16px 32px;max-width:1200px;margin:0 auto;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:18px;}
+  .logo .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:32px;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- directory ---------- */
+  .dir-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;}
+  .dir-head h1{font-size:30px;margin:0 0 6px;font-weight:600;}
+  .dir-head p{margin:0;color:var(--muted);font-size:14px;}
+  .btn{padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;}
+  .btn-brass{background:var(--brass);color:var(--ink);}
+  .btn-outline{background:transparent;border:1px solid var(--hairline);color:var(--paper);}
+
+  .filter-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+  .chip{padding:8px 16px;border-radius:999px;border:1px solid var(--hairline);font-size:13px;cursor:pointer;}
+  .chip.active{background:var(--brass);color:var(--ink);border-color:var(--brass);font-weight:600;}
+
+  .club-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .club-card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .15s ease, border-color .15s ease;}
+  .club-card:hover{transform:translateY(-4px);border-color:rgba(232,163,61,0.35);}
+  .club-banner{height:90px;}
+  .club-body{padding:16px;}
+  .club-body h3{font-family:'Fraunces',serif;font-size:16px;margin:0 0 6px;font-weight:600;}
+  .club-body p{font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.5;}
+  .club-meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);}
+  .member-stack{display:flex;}
+  .member-stack .m{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));border:2px solid var(--surface);margin-left:-8px;}
+  .member-stack .m:first-child{margin-left:0;}
+
+  /* ---------- club detail ---------- */
+  .club-hero{border-radius:20px;overflow:hidden;margin-bottom:24px;position:relative;height:170px;display:flex;align-items:flex-end;}
+  .club-hero-overlay{position:relative;z-index:1;padding:20px 28px;background:linear-gradient(0deg, rgba(18,20,28,0.9), transparent);width:100%;}
+  .club-hero-overlay .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);letter-spacing:.1em;text-transform:uppercase;}
+  .club-hero-overlay h1{font-size:26px;margin:6px 0 0;font-weight:600;}
+  .back-link{font-size:13px;color:var(--muted);cursor:pointer;display:inline-block;margin-bottom:16px;}
+
+  .detail-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;}
+  .tab-row{display:flex;gap:22px;border-bottom:1px solid var(--hairline);margin-bottom:20px;}
+  .tab{padding:10px 0;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--paper);border-color:var(--brass);}
+
+  .post{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:18px;margin-bottom:14px;}
+  .post-head{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .post-head .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--clothblue),var(--brass));}
+  .post-head b{font-size:13.5px;display:block;}
+  .post-head span{font-size:11.5px;color:var(--muted);}
+  .post p.body{font-size:13.5px;line-height:1.6;color:var(--paper-dim);margin:0 0 12px;}
+  .post-actions{display:flex;gap:18px;font-size:12.5px;color:var(--muted);}
+  .post-actions span{cursor:pointer;}
+  .post-actions span:hover{color:var(--brass);}
+
+  .poll-card{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:18px;margin-bottom:20px;}
+  .poll-card h4{font-family:'Fraunces',serif;font-size:15px;margin:0 0 4px;}
+  .poll-card .closes{font-size:11.5px;color:var(--muted);margin-bottom:14px;}
+  .poll-opt{margin-bottom:10px;cursor:pointer;}
+  .poll-opt-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+  .poll-bar-track{height:8px;border-radius:4px;background:rgba(255,255,255,0.06);overflow:hidden;}
+  .poll-bar-fill{height:100%;background:linear-gradient(90deg,var(--brass),#f5c876);border-radius:4px;transition:width .3s ease;}
+  .poll-opt.voted .poll-bar-fill{background:var(--clothblue);}
+
+  .side-card{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:18px;margin-bottom:16px;}
+  .side-card h4{font-family:'Fraunces',serif;font-size:14.5px;margin:0 0 12px;}
+  .event-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--hairline);}
+  .event-item:last-child{border-bottom:none;}
+  .event-date{width:38px;text-align:center;background:var(--surface-hi);border-radius:8px;padding:5px 0;font-size:10px;flex-shrink:0;}
+  .event-date b{display:block;font-family:'Fraunces',serif;font-size:14px;}
+  .event-item .meta b{font-size:12.5px;display:block;}
+  .event-item .meta span{font-size:11px;color:var(--muted);}
+
+  .rank-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;}
+  .rank-item .name{display:flex;gap:10px;align-items:center;}
+  .rank-item .av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+  .rank-item .pts{color:var(--brass);font-weight:600;font-size:12px;}
+
+  @media (max-width:900px){
+    .club-grid{grid-template-columns:1fr 1fr;}
+    .detail-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topnav">
+    <div class="logo"><span class="dot"></span>BookNest</div>
+    <div class="avatar"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- DIRECTORY -->
+  <section class="screen active" id="screen-directory">
+    <div class="dir-head">
+      <div>
+        <h1 class="display">Book Clubs</h1>
+        <p>3,912 clubs · find people reading exactly what you are</p>
+      </div>
+      <button class="btn btn-brass">+ Create a club</button>
+    </div>
+    <div class="filter-row">
+      <div class="chip active">All</div>
+      <div class="chip">My clubs</div>
+      <div class="chip">Fantasy</div>
+      <div class="chip">Literary Fiction</div>
+      <div class="chip">Non-fiction</div>
+      <div class="chip">Public only</div>
+    </div>
+    <div class="club-grid" id="clubGrid">
+      <div class="club-card" onclick="openClub()">
+        <div class="club-banner" style="background:linear-gradient(135deg,#7fa0c2,#3f5876);"></div>
+        <div class="club-body">
+          <h3>Slow Fiction Club</h3>
+          <p>One literary novel a month, read slowly and discussed deeply.</p>
+          <div class="club-meta">
+            <div class="member-stack"><div class="m"></div><div class="m"></div><div class="m"></div></div>
+            <span>842 members</span>
+          </div>
+        </div>
+      </div>
+      <div class="club-card" onclick="openClub()">
+        <div class="club-banner" style="background:linear-gradient(135deg,#141830,#0c0f1e);"></div>
+        <div class="club-body">
+          <h3>Night Owls</h3>
+          <p>Horror and thriller picks, live discussions at midnight.</p>
+          <div class="club-meta">
+            <div class="member-stack"><div class="m"></div><div class="m"></div><div class="m"></div></div>
+            <span>1,204 members</span>
+          </div>
+        </div>
+      </div>
+      <div class="club-card" onclick="openClub()">
+        <div class="club-banner" style="background:linear-gradient(135deg,#8fb996,#3f5f46);"></div>
+        <div class="club-body">
+          <h3>Field &amp; Forest Reads</h3>
+          <p>Nature writing, memoir, and quiet nonfiction.</p>
+          <div class="club-meta">
+            <div class="member-stack"><div class="m"></div><div class="m"></div><div class="m"></div></div>
+            <span>531 members</span>
+          </div>
+        </div>
+      </div>
+      <div class="club-card" onclick="openClub()">
+        <div class="club-banner" style="background:linear-gradient(135deg,#b98fb0,#5f3f58);"></div>
+        <div class="club-body">
+          <h3>Translated Fiction</h3>
+          <p>A world tour, one translated novel at a time.</p>
+          <div class="club-meta">
+            <div class="member-stack"><div class="m"></div><div class="m"></div><div class="m"></div></div>
+            <span>367 members</span>
+          </div>
+        </div>
+      </div>
+      <div class="club-card" onclick="openClub()">
+        <div class="club-banner" style="background:linear-gradient(135deg,#c98f6a,#6a4530);"></div>
+        <div class="club-body">
+          <h3>Cozy Mysteries</h3>
+          <p>Whodunits with tea, not terror.</p>
+          <div class="club-meta">
+            <div class="member-stack"><div class="m"></div><div class="m"></div><div class="m"></div></div>
+            <span>298 members</span>
+          </div>
+        </div>
+      </div>
+      <div class="club-card" onclick="openClub()">
+        <div class="club-banner" style="background:linear-gradient(135deg,#e8a33d,#8a5f21);"></div>
+        <div class="club-body">
+          <h3>Sci-Fi Signal</h3>
+          <p>Hard sci-fi and speculative futures, discussed weekly.</p>
+          <div class="club-meta">
+            <div class="member-stack"><div class="m"></div><div class="m"></div><div class="m"></div></div>
+            <span>1,890 members</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLUB DETAIL -->
+  <section class="screen" id="screen-detail">
+    <span class="back-link" onclick="backToDir()">← All clubs</span>
+    <div class="club-hero" style="background:linear-gradient(135deg,#7fa0c2,#3f5876);">
+      <div class="club-hero-overlay">
+        <span class="eyebrow">Public club · 842 members</span>
+        <h1 class="display">Slow Fiction Club</h1>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <div class="tab-row">
+          <div class="tab active" data-tab="feed">Feed</div>
+          <div class="tab" data-tab="chapters">Chapter discussions</div>
+          <div class="tab" data-tab="resources">Resources</div>
+        </div>
+
+        <div id="tab-feed">
+          <div class="poll-card">
+            <h4>Vote: our August book</h4>
+            <div class="closes">Poll closes in 3 days</div>
+            <div class="poll-opt" onclick="vote(this,62)">
+              <div class="poll-opt-label"><span>The Understory — R. Alvi</span><span>62%</span></div>
+              <div class="poll-bar-track"><div class="poll-bar-fill" style="width:62%"></div></div>
+            </div>
+            <div class="poll-opt" onclick="vote(this,28)">
+              <div class="poll-opt-label"><span>Field Notes — M. Duchêne</span><span>28%</span></div>
+              <div class="poll-bar-track"><div class="poll-bar-fill" style="width:28%"></div></div>
+            </div>
+            <div class="poll-opt" onclick="vote(this,10)">
+              <div class="poll-opt-label"><span>Nine Winters — Y. Park</span><span>10%</span></div>
+              <div class="poll-bar-track"><div class="poll-bar-fill" style="width:10%"></div></div>
+            </div>
+          </div>
+
+          <div class="post">
+            <div class="post-head">
+              <div class="av"></div>
+              <div><b>Marcus R.</b><span>Moderator · 2h ago</span></div>
+            </div>
+            <p class="body">Chapter 12 absolutely gutted me — the scene at the tide pools recontextualizes everything from Part One. Thread below if you want to talk it through 🌊</p>
+            <div class="post-actions"><span>♡ 34</span><span>💬 12</span><span>Share</span></div>
+          </div>
+
+          <div class="post">
+            <div class="post-head">
+              <div class="av"></div>
+              <div><b>Lena W.</b><span>5h ago</span></div>
+            </div>
+            <p class="body">Reminder: Thursday's discussion covers Ch. 12–18. Bring your annotated copies, or don't — no judgment either way 📖</p>
+            <div class="post-actions"><span>♡ 19</span><span>💬 4</span><span>Share</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="side-card">
+          <h4>Upcoming events</h4>
+          <div class="event-item"><div class="event-date"><b>08</b>JUL</div><div class="meta"><b>Discussion: Ch. 12–18</b><span>7:00 PM · Voice room</span></div></div>
+          <div class="event-item"><div class="event-date"><b>15</b>JUL</div><div class="meta"><b>Author Q&amp;A</b><span>With N. Okafor</span></div></div>
+        </div>
+        <div class="side-card">
+          <h4>Top contributors this month</h4>
+          <div class="rank-item"><div class="name"><div class="av"></div>Marcus R.</div><div class="pts">1,204 pts</div></div>
+          <div class="rank-item"><div class="name"><div class="av"></div>Lena W.</div><div class="pts">980 pts</div></div>
+          <div class="rank-item"><div class="name"><div class="av"></div>Priya M.</div><div class="pts">710 pts</div></div>
+        </div>
+        <div class="side-card">
+          <h4>About</h4>
+          <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin:0;">One literary novel a month, read slowly and discussed deeply. No spoilers past the assigned chapters, always.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function openClub(){
+    document.getElementById('screen-directory').classList.remove('active');
+    document.getElementById('screen-detail').classList.add('active');
+    window.scrollTo(0,0);
+  }
+  function backToDir(){
+    document.getElementById('screen-detail').classList.remove('active');
+    document.getElementById('screen-directory').classList.add('active');
+  }
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+  }));
+  let voted = false;
+  function vote(el, pct){
+    if (voted) return;
+    voted = true;
+    document.querySelectorAll('.poll-opt').forEach(o => o.style.opacity = '0.55');
+    el.style.opacity = '1';
+    el.classList.add('voted');
+  }
+</script>
+</body>
+</html>

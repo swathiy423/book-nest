@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c; --surface:#1e2230; --surface-hi:#262b3c; --paper:#f2efe9;
+    --paper-dim:#c9c6bd; --brass:#e8a33d; --clothblue:#7fa0c2; --muted:#8b90a0; --hairline:rgba(242,239,233,0.09);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+  .display{font-family:'Fraunces',serif;}
+  .screen{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;}
+
+  /* left: form */
+  .form-side{display:flex;align-items:center;justify-content:center;padding:40px;}
+  .form-box{width:100%;max-width:380px;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin-bottom:44px;}
+  .logo .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);box-shadow:0 0 8px var(--brass);}
+
+  .tabs{display:flex;gap:6px;background:var(--surface);border-radius:12px;padding:4px;margin-bottom:28px;}
+  .tab{flex:1;text-align:center;padding:9px 0;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted);}
+  .tab.active{background:var(--surface-hi);color:var(--paper);}
+
+  h1{font-size:26px;margin:0 0 6px;font-weight:600;}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 28px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;color:var(--paper-dim);margin-bottom:6px;}
+  .field input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--hairline);
+    background:var(--surface);color:var(--paper);font-size:14px;outline:none;transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--brass);}
+  .row-between{display:flex;justify-content:space-between;align-items:center;margin:14px 0 24px;font-size:12.5px;}
+  .remember{display:flex;align-items:center;gap:7px;color:var(--paper-dim);}
+  .remember input{accent-color:var(--brass);}
+  .link{color:var(--brass);cursor:pointer;}
+
+  .btn{
+    display:flex;align-items:center;justify-content:center;width:100%;padding:13px 0;border-radius:10px;
+    font-size:14.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:.15s;
+  }
+  .btn-brass{background:var(--brass);color:var(--ink);}
+  .btn-brass:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(232,163,61,0.3);}
+  .divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:var(--muted);font-size:12px;}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--hairline);}
+  .btn-google{
+    display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 0;
+    border-radius:10px;border:1px solid var(--hairline);background:transparent;color:var(--paper);
+    font-size:14px;font-weight:500;cursor:pointer;
+  }
+  .btn-google:hover{border-color:var(--paper-dim);}
+
+  .twofa{display:none;gap:8px;margin:6px 0 20px;}
+  .twofa input{
+    width:44px;height:52px;text-align:center;font-size:20px;border-radius:10px;
+    border:1px solid var(--hairline);background:var(--surface);color:var(--paper);
+  }
+  .twofa input:focus{border-color:var(--brass);outline:none;}
+  .twofa-note{font-size:12px;color:var(--muted);margin-bottom:16px;}
+
+  .footnote{text-align:center;font-size:13px;color:var(--muted);margin-top:24px;}
+
+  /* right: visual side */
+  .visual-side{
+    position:relative;overflow:hidden;
+    background:radial-gradient(120% 100% at 80% 0%, rgba(232,163,61,0.18), transparent 60%), linear-gradient(160deg,#181b26,#0e1017);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .quote-block{max-width:360px;padding:40px;position:relative;z-index:1;}
+  .quote-block p{font-family:'Fraunces',serif;font-style:italic;font-size:22px;line-height:1.5;}
+  .quote-block span{display:block;margin-top:16px;font-size:13px;color:var(--muted);}
+  .stack{position:absolute;inset:0;pointer-events:none;}
+  .book{position:absolute;border-radius:6px 10px 10px 6px;box-shadow:0 30px 60px -20px rgba(0,0,0,0.55);animation:float 8s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(var(--r));}50%{transform:translateY(-14px) rotate(var(--r));}}
+  .b1{--r:-8deg;width:120px;height:170px;left:60px;top:80px;background:linear-gradient(135deg,#7fa0c2,#3f5876);}
+  .b2{--r:7deg;width:100px;height:140px;right:80px;bottom:100px;background:linear-gradient(135deg,#e8a33d,#a9762c);animation-delay:1.5s;}
+  .b3{--r:-4deg;width:90px;height:120px;right:200px;top:120px;background:linear-gradient(135deg,#b98fb0,#6f4f68);animation-delay:.8s;}
+
+  @media (max-width:860px){
+    .screen{grid-template-columns:1fr;}
+    .visual-side{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="form-side">
+    <div class="form-box">
+      <div class="logo"><span class="dot"></span>BookNest</div>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="login">Log in</div>
+        <div class="tab" data-tab="signup">Sign up</div>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="panel-login">
+        <h1>Welcome back</h1>
+        <p class="sub">Pick up right where you left off.</p>
+        <div class="field"><label>Email</label><input type="email" placeholder="you@example.com" /></div>
+        <div class="field"><label>Password</label><input type="password" placeholder="••••••••" /></div>
+        <div class="row-between">
+          <label class="remember"><input type="checkbox" checked /> Remember me</label>
+          <span class="link" id="forgotLink">Forgot password?</span>
+        </div>
+
+        <div class="twofa" id="twofaRow">
+          <input maxlength="1" /><input maxlength="1" /><input maxlength="1" /><input maxlength="1" /><input maxlength="1" /><input maxlength="1" />
+        </div>
+        <p class="twofa-note" id="twofaNote" style="display:none;">Enter the 6-digit code from your authenticator app.</p>
+
+        <div class="btn btn-brass" id="loginBtn">Log in</div>
+        <div class="divider">or</div>
+        <div class="btn-google">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.5 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6.1C12.3 13.3 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 2.9-2.2 5.3-4.6 7l7.3 5.7c4.3-4 6.8-9.9 6.8-17.2z"/><path fill="#FBBC05" d="M10.4 19.4A14.5 14.5 0 0 0 9.5 24c0 1.6.3 3.1.9 4.6l-7.8 6.1A24 24 0 0 1 0 24c0-3.9.9-7.5 2.6-10.7z"/><path fill="#34A853" d="M24 48c6.1 0 11.6-2 15.4-5.5l-7.3-5.7c-2 1.4-4.7 2.2-8.1 2.2-6.4 0-11.7-3.8-13.6-9.9l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+          Continue with Google
+        </div>
+      </div>
+
+      <!-- SIGNUP -->
+      <div id="panel-signup" style="display:none;">
+        <h1>Create your account</h1>
+        <p class="sub">Free forever. Import your shelves in a minute.</p>
+        <div class="field"><label>Name</label><input type="text" placeholder="Priya Menon" /></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="you@example.com" /></div>
+        <div class="field"><label>Password</label><input type="password" placeholder="At least 8 characters" /></div>
+        <div class="btn btn-brass" id="signupBtn">Create account</div>
+        <div class="divider">or</div>
+        <div class="btn-google">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.5 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6.1C12.3 13.3 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 2.9-2.2 5.3-4.6 7l7.3 5.7c4.3-4 6.8-9.9 6.8-17.2z"/><path fill="#FBBC05" d="M10.4 19.4A14.5 14.5 0 0 0 9.5 24c0 1.6.3 3.1.9 4.6l-7.8 6.1A24 24 0 0 1 0 24c0-3.9.9-7.5 2.6-10.7z"/><path fill="#34A853" d="M24 48c6.1 0 11.6-2 15.4-5.5l-7.3-5.7c-2 1.4-4.7 2.2-8.1 2.2-6.4 0-11.7-3.8-13.6-9.9l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+          Continue with Google
+        </div>
+      </div>
+
+      <p class="footnote">By continuing you agree to BookNest's Terms and Privacy Policy.</p>
+    </div>
+  </div>
+
+  <div class="visual-side">
+    <div class="stack">
+      <div class="book b1"></div><div class="book b2"></div><div class="book b3"></div>
+    </div>
+    <div class="quote-block">
+      <p class="display">"Somewhere inside all of us is the power to change the world."</p>
+      <span>— shared by 2,140 readers this week</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const panels = { login: document.getElementById('panel-login'), signup: document.getElementById('panel-signup') };
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    Object.entries(panels).forEach(([k, el]) => el.style.display = k === t.dataset.tab ? 'block' : 'none');
+  }));
+
+  // simulate 2FA prompt appearing after login attempt
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    document.getElementById('twofaRow').style.display = 'flex';
+    document.getElementById('twofaNote').style.display = 'block';
+    document.getElementById('loginBtn').textContent = 'Verify and log in';
+  });
+
+  // auto-advance 2FA digit inputs
+  document.querySelectorAll('.twofa input').forEach((inp, i, arr) => {
+    inp.addEventListener('input', () => { if (inp.value && arr[i+1]) arr[i+1].focus(); });
+  });
+
+  document.getElementById('forgotLink').addEventListener('click', () => {
+    alert('A password reset link would be emailed to you here.');
+  });
+</script>
+</body>
+</html>

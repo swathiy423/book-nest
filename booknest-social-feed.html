@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — Community</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c; --surface:#1e2230; --surface-hi:#262b3c; --paper:#f2efe9;
+    --paper-dim:#c9c6bd; --brass:#e8a33d; --clothblue:#7fa0c2; --muted:#8b90a0;
+    --hairline:rgba(242,239,233,0.09); --good:#8fb996;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .display{font-family:'Fraunces',serif;}
+
+  header{position:sticky;top:0;z-index:20;background:rgba(18,20,28,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--hairline);}
+  .topnav{display:flex;justify-content:space-between;align-items:center;padding:16px 32px;max-width:1180px;margin:0 auto;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:'Fraunces',serif;font-weight:600;font-size:18px;}
+  .logo .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);}
+  .navlinks{display:flex;gap:26px;font-size:13.5px;color:var(--muted);}
+  .navlinks span.active{color:var(--brass);}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 32px;display:grid;grid-template-columns:280px 1fr 300px;gap:22px;}
+
+  /* ---------- profile card ---------- */
+  .profile-card{background:var(--surface);border:1px solid var(--hairline);border-radius:18px;padding:24px;text-align:center;margin-bottom:16px;}
+  .profile-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));margin:0 auto 14px;}
+  .profile-card h2{font-family:'Fraunces',serif;font-size:19px;margin:0 0 2px;font-weight:600;}
+  .profile-card p.handle{color:var(--muted);font-size:12.5px;margin:0 0 14px;}
+  .profile-card p.bio{font-size:12.5px;color:var(--paper-dim);line-height:1.6;margin:0 0 18px;}
+  .follow-stats{display:flex;justify-content:center;gap:22px;margin-bottom:18px;}
+  .follow-stats div b{display:block;font-family:'Fraunces',serif;font-size:17px;}
+  .follow-stats div span{font-size:10.5px;color:var(--muted);}
+  .btn{padding:9px 18px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;width:100%;}
+  .btn-brass{background:var(--brass);color:var(--ink);}
+  .btn-outline{background:transparent;border:1px solid var(--hairline);color:var(--paper);}
+
+  .side-card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:18px;margin-bottom:16px;}
+  .side-card h4{font-family:'Fraunces',serif;font-size:14px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;}
+  .side-card h4 span.link{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--brass);font-weight:500;cursor:pointer;}
+
+  .badge-strip{display:flex;gap:8px;flex-wrap:wrap;}
+  .badge-mini{width:38px;height:38px;border-radius:10px;background:var(--surface-hi);display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid var(--hairline);}
+
+  .goal-mini{display:flex;align-items:center;gap:12px;}
+  .ring-mini{position:relative;width:52px;height:52px;flex-shrink:0;}
+  .ring-mini svg{transform:rotate(-90deg);}
+  .ring-mini-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--brass);}
+
+  /* follow suggestion list */
+  .suggest-item{display:flex;align-items:center;gap:10px;padding:8px 0;}
+  .suggest-item .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--clothblue),var(--brass));flex-shrink:0;}
+  .suggest-item .meta{flex:1;}
+  .suggest-item b{font-size:12.5px;display:block;}
+  .suggest-item span{font-size:10.5px;color:var(--muted);}
+  .follow-btn{padding:6px 12px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid var(--hairline);background:transparent;color:var(--paper);cursor:pointer;flex-shrink:0;}
+  .follow-btn.following{background:var(--brass);color:var(--ink);border-color:var(--brass);}
+
+  /* ---------- feed ---------- */
+  .composer{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:16px;margin-bottom:18px;}
+  .composer-row{display:flex;gap:12px;}
+  .composer input{flex:1;background:var(--ink);border:1px solid var(--hairline);border-radius:999px;padding:11px 16px;color:var(--paper);font-size:13px;outline:none;}
+  .composer input:focus{border-color:var(--brass);}
+  .composer-actions{display:flex;justify-content:flex-end;margin-top:10px;}
+  .composer-actions .btn{width:auto;padding:8px 18px;}
+
+  .feed-item{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:18px;margin-bottom:14px;}
+  .feed-head{display:flex;gap:11px;align-items:center;margin-bottom:12px;}
+  .feed-head .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brass),var(--clothblue));}
+  .feed-head b{font-size:13.5px;display:block;}
+  .feed-head span{font-size:11.5px;color:var(--muted);}
+  .feed-body{font-size:13.5px;color:var(--paper-dim);line-height:1.6;margin-bottom:12px;}
+  .feed-book{display:flex;gap:12px;background:var(--surface-hi);border-radius:12px;padding:12px;margin-bottom:12px;}
+  .feed-book .cover{width:44px;height:60px;border-radius:6px;flex-shrink:0;}
+  .feed-book .meta b{font-size:13px;display:block;}
+  .feed-book .meta span{font-size:11.5px;color:var(--muted);}
+  .feed-book .stars{color:var(--brass);font-size:12px;margin-top:4px;}
+  .feed-actions{display:flex;gap:20px;font-size:12.5px;color:var(--muted);}
+  .feed-actions span{cursor:pointer;}
+  .feed-actions span.liked{color:var(--brass);}
+  .milestone-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--brass);background:rgba(232,163,61,0.12);padding:4px 10px;border-radius:999px;margin-bottom:10px;}
+
+  @media (max-width:960px){
+    .wrap{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topnav">
+    <div class="logo"><span class="dot"></span>BookNest</div>
+    <div class="navlinks"><span class="active">Feed</span><span>Discover people</span><span>Followers</span><span>Following</span></div>
+    <div class="avatar"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- LEFT: profile -->
+  <div>
+    <div class="profile-card">
+      <div class="profile-avatar"></div>
+      <h2>Priya Menon</h2>
+      <p class="handle">@priya.reads</p>
+      <p class="bio">Slow reader, faster note-taker. Currently obsessed with translated fiction and tide pools.</p>
+      <div class="follow-stats">
+        <div><b>342</b><span>FOLLOWERS</span></div>
+        <div><b>198</b><span>FOLLOWING</span></div>
+        <div><b>86</b><span>BOOKS</span></div>
+      </div>
+      <button class="btn btn-outline">Edit profile</button>
+    </div>
+
+    <div class="side-card">
+      <h4>Badges <span class="link">All 14</span></h4>
+      <div class="badge-strip">
+        <div class="badge-mini">🔥</div><div class="badge-mini">📚</div>
+        <div class="badge-mini">🌙</div><div class="badge-mini">✍️</div>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <h4>2026 goal</h4>
+      <div class="goal-mini">
+        <div class="ring-mini">
+          <svg width="52" height="52">
+            <circle cx="26" cy="26" r="21" stroke="var(--hairline)" stroke-width="5" fill="none"/>
+            <circle cx="26" cy="26" r="21" stroke="var(--brass)" stroke-width="5" fill="none" stroke-dasharray="132" stroke-dashoffset="26" stroke-linecap="round"/>
+          </svg>
+          <div class="ring-mini-label">80%</div>
+        </div>
+        <div><b style="font-size:12.5px;">32 of 40 books</b><p style="font-size:11px;color:var(--muted);margin:2px 0 0;">On pace to finish early</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: feed -->
+  <div>
+    <div class="composer">
+      <div class="composer-row">
+        <div class="avatar"></div>
+        <input type="text" placeholder="Share a reading update…" />
+      </div>
+      <div class="composer-actions"><button class="btn btn-brass">Post</button></div>
+    </div>
+
+    <div class="feed-item">
+      <div class="milestone-tag">🏆 Milestone unlocked</div>
+      <div class="feed-head"><div class="av"></div><div><b>Lena Wu</b><span>Finished her 30th book of the year · 1h ago</span></div></div>
+      <div class="feed-body">Wrapped up the year's reading goal with three months to spare. Onto the stretch goal now 👀</div>
+      <div class="feed-actions"><span class="liked">♡ 58</span><span>💬 9</span><span>Share</span></div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-head"><div class="av"></div><div><b>Marcus R.</b><span>Rated a book · 3h ago</span></div></div>
+      <div class="feed-body">Could not put this down. The ending recontextualizes the entire first act.</div>
+      <div class="feed-book">
+        <div class="cover" style="background:linear-gradient(135deg,#7fa0c2,#3f5876);"></div>
+        <div class="meta"><b>The Tide Room</b><span>N. Okafor</span><div class="stars">★★★★★</div></div>
+      </div>
+      <div class="feed-actions"><span>♡ 41</span><span>💬 6</span><span>Share</span></div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-head"><div class="av"></div><div><b>Jordan T.</b><span>Started a new book · 6h ago</span></div></div>
+      <div class="feed-body">First book of the new translated-fiction shelf. Two chapters in and already hooked.</div>
+      <div class="feed-book">
+        <div class="cover" style="background:linear-gradient(135deg,#b98fb0,#6f4f68);"></div>
+        <div class="meta"><b>Nine Winters</b><span>Y. Park</span></div>
+      </div>
+      <div class="feed-actions"><span>♡ 22</span><span>💬 2</span><span>Share</span></div>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-head"><div class="av"></div><div><b>Asha K.</b><span>Completed an exchange · 1d ago</span></div></div>
+      <div class="feed-body">Traded my copy of Salt &amp; Marrow for Field Notes with @sam.o — my fourth exchange this month!</div>
+      <div class="feed-actions"><span>♡ 30</span><span>💬 3</span><span>Share</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: discover people -->
+  <div>
+    <div class="side-card">
+      <h4>People you may know <span class="link">See all</span></h4>
+      <div class="suggest-item"><div class="av"></div><div class="meta"><b>Sam O.</b><span>Reads: Nature writing</span></div><button class="follow-btn" onclick="toggleFollow(this)">Follow</button></div>
+      <div class="suggest-item"><div class="av"></div><div class="meta"><b>Nadia F.</b><span>3 mutual friends</span></div><button class="follow-btn" onclick="toggleFollow(this)">Follow</button></div>
+      <div class="suggest-item"><div class="av"></div><div class="meta"><b>Théo B.</b><span>Reads: Sci-Fi</span></div><button class="follow-btn" onclick="toggleFollow(this)">Follow</button></div>
+      <div class="suggest-item"><div class="av"></div><div class="meta"><b>Riya S.</b><span>In Slow Fiction Club</span></div><button class="follow-btn" onclick="toggleFollow(this)">Follow</button></div>
+    </div>
+
+    <div class="side-card">
+      <h4>Trending reviewers</h4>
+      <div class="suggest-item"><div class="av"></div><div class="meta"><b>Marcus R.</b><span>128 reviews this year</span></div></div>
+      <div class="suggest-item"><div class="av"></div><div class="meta"><b>Lena W.</b><span>94 reviews this year</span></div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggleFollow(btn){
+    const following = btn.classList.toggle('following');
+    btn.textContent = following ? 'Following' : 'Follow';
+  }
+  document.querySelectorAll('.navlinks span').forEach(n => n.addEventListener('click', () => {
+    document.querySelectorAll('.navlinks span').forEach(x => x.classList.remove('active'));
+    n.classList.add('active');
+  }));
+</script>
+</body>
+</html>
