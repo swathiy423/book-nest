@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookNest — A nest for every book you'll ever read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380..600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c;
+    --ink-2:#181b26;
+    --surface:#1e2230;
+    --surface-hi:#262b3c;
+    --paper:#f2efe9;
+    --paper-dim:#c9c6bd;
+    --brass:#e8a33d;
+    --brass-dim:#a9762c;
+    --clothblue:#7fa0c2;
+    --muted:#8b90a0;
+    --hairline:rgba(242,239,233,0.09);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .display{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;}
+
+  /* ---------- shared layout ---------- */
+  .wrap{max-width:1120px;margin:0 auto;padding:0 32px;}
+  section{padding:96px 0;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+  }
+
+  /* ---------- signature: bookshelf spine divider ---------- */
+  .shelf{
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    height:46px;
+    margin:0 0 40px;
+    overflow:hidden;
+  }
+  .shelf span{
+    display:block;
+    width:9px;
+    border-radius:2px 2px 0 0;
+    animation:spineSettle .6s ease-out backwards;
+  }
+  @keyframes spineSettle{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(14px);
+    background:rgba(18,20,28,0.72);
+    border-bottom:1px solid var(--hairline);
+  }
+  nav.wrap{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;}
+  .logo{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
+  .logo .dot{width:8px;height:8px;border-radius:50%;background:var(--brass);box-shadow:0 0 10px var(--brass);}
+  .navlinks{display:flex;gap:32px;font-size:14px;color:var(--paper-dim);}
+  .navlinks a:hover{color:var(--paper);}
+  .navcta{display:flex;gap:14px;align-items:center;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:10px 20px;border-radius:999px;font-size:14px;font-weight:600;
+    cursor:pointer;border:1px solid transparent;transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-ghost{color:var(--paper);border-color:var(--hairline);}
+  .btn-ghost:hover{border-color:var(--paper-dim);}
+  .btn-brass{background:var(--brass);color:var(--ink);}
+  .btn-brass:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(232,163,61,0.35);}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding-top:120px;padding-bottom:100px;overflow:hidden;}
+  .hero-glow{
+    position:absolute;top:-180px;left:50%;transform:translateX(-50%);
+    width:900px;height:500px;
+    background:radial-gradient(closest-side, rgba(232,163,61,0.16), transparent);
+    pointer-events:none;
+  }
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:56px;align-items:center;position:relative;}
+  .hero h1{
+    font-size:56px;line-height:1.05;margin:18px 0 22px;font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{font-style:italic;color:var(--brass);}
+  .hero p.lede{font-size:17px;color:var(--paper-dim);max-width:480px;line-height:1.6;margin-bottom:32px;}
+  .hero-actions{display:flex;gap:14px;align-items:center;margin-bottom:44px;}
+  .hero-actions .btn{padding:14px 26px;font-size:15px;}
+  .hero-note{font-size:13px;color:var(--muted);}
+
+  /* floating book stack (signature visual, no stock imagery needed) */
+  .stack{position:relative;height:420px;}
+  .book{
+    position:absolute;border-radius:6px 10px 10px 6px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.55), inset -6px 0 12px rgba(0,0,0,0.25);
+    animation:float 7s ease-in-out infinite;
+  }
+  .book::after{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:rgba(255,255,255,0.18);}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(var(--r));}50%{transform:translateY(-16px) rotate(var(--r));}}
+  .b1{--r:-8deg;width:150px;height:210px;left:70px;top:60px;background:linear-gradient(135deg,#7fa0c2,#4d6a89);animation-delay:0s;}
+  .b2{--r:6deg;width:130px;height:180px;left:210px;top:170px;background:linear-gradient(135deg,#e8a33d,#a9762c);animation-delay:1.2s;z-index:2;}
+  .b3{--r:-3deg;width:120px;height:165px;left:20px;top:220px;background:linear-gradient(135deg,#b98fb0,#7a5a73);animation-delay:2.1s;}
+  .b4{--r:11deg;width:110px;height:150px;left:250px;top:30px;background:linear-gradient(135deg,#8fb996,#547a5c);animation-delay:.6s;}
+
+  /* ---------- stats ---------- */
+  .stats{border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;}
+  .stat b{display:block;font-family:'Fraunces',serif;font-size:36px;color:var(--brass);font-weight:600;}
+  .stat span{font-size:13px;color:var(--muted);}
+
+  /* ---------- section heads ---------- */
+  .section-head{max-width:560px;margin-bottom:48px;}
+  .section-head h2{font-size:34px;margin:10px 0 12px;font-weight:600;}
+  .section-head p{color:var(--paper-dim);font-size:15px;line-height:1.6;}
+
+  /* ---------- featured books ---------- */
+  .book-row{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;}
+  .book-card{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:16px;transition:transform .2s ease, border-color .2s ease;}
+  .book-card:hover{transform:translateY(-6px);border-color:rgba(232,163,61,0.4);}
+  .cover{height:150px;border-radius:8px;margin-bottom:14px;background:linear-gradient(160deg,var(--c1),var(--c2));}
+  .book-card h4{font-size:14px;margin:0 0 4px;font-weight:600;}
+  .book-card p{font-size:12px;color:var(--muted);margin:0;}
+
+  /* ---------- clubs / features split ---------- */
+  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  .feature-card{
+    background:linear-gradient(180deg, var(--surface), var(--surface-hi));
+    border:1px solid var(--hairline);border-radius:16px;padding:28px;
+  }
+  .feature-card .icon{width:38px;height:38px;border-radius:10px;background:rgba(232,163,61,0.14);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--brass);font-size:18px;}
+  .feature-card h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 8px;font-weight:600;}
+  .feature-card p{font-size:13.5px;color:var(--paper-dim);line-height:1.6;margin:0;}
+
+  /* ---------- testimonials ---------- */
+  .quote-row{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  .quote-card{border-left:2px solid var(--brass);padding-left:20px;}
+  .quote-card p{font-family:'Fraunces',serif;font-style:italic;font-size:16px;line-height:1.6;color:var(--paper);}
+  .quote-card span{display:block;margin-top:14px;font-size:12px;color:var(--muted);}
+
+  /* ---------- challenge banner ---------- */
+  .challenge{
+    border-radius:24px;padding:56px;
+    background:radial-gradient(120% 120% at 0% 0%, rgba(232,163,61,0.16), transparent 60%), var(--surface);
+    border:1px solid var(--hairline);
+    display:grid;grid-template-columns:1.3fr 0.7fr;gap:40px;align-items:center;
+  }
+  .challenge h2{font-size:30px;margin:0 0 12px;font-weight:600;}
+  .challenge p{color:var(--paper-dim);font-size:14.5px;line-height:1.6;max-width:420px;}
+  .ring-wrap{display:flex;justify-content:center;}
+  .ring{position:relative;width:150px;height:150px;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-label b{font-family:'Fraunces',serif;font-size:24px;}
+  .ring-label span{font-size:11px;color:var(--muted);}
+
+  /* ---------- faq ---------- */
+  .faq-item{border-bottom:1px solid var(--hairline);padding:20px 0;cursor:pointer;}
+  .faq-q{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:500;}
+  .faq-q .plus{color:var(--brass);font-size:18px;transition:transform .2s ease;}
+  .faq-item.open .plus{transform:rotate(45deg);}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease;font-size:14px;color:var(--paper-dim);line-height:1.6;}
+  .faq-item.open .faq-a{max-height:160px;padding-top:12px;}
+
+  /* ---------- newsletter ---------- */
+  .newsletter{
+    text-align:center;padding:80px 0;
+  }
+  .newsletter h2{font-size:32px;margin-bottom:10px;}
+  .newsletter p{color:var(--paper-dim);margin-bottom:28px;}
+  .nl-form{display:flex;gap:10px;justify-content:center;max-width:420px;margin:0 auto;}
+  .nl-form input{
+    flex:1;padding:13px 16px;border-radius:999px;border:1px solid var(--hairline);
+    background:var(--surface);color:var(--paper);font-size:14px;outline:none;
+  }
+  .nl-form input:focus{border-color:var(--brass);}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--hairline);padding:56px 0 32px;}
+  .footer-grid{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:40px;}
+  .footer-grid h5{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;}
+  .footer-grid ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--paper-dim);}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);border-top:1px solid var(--hairline);padding-top:24px;}
+  .social{display:flex;gap:14px;}
+
+  @media (max-width:860px){
+    .hero-grid, .footer-grid, .challenge{grid-template-columns:1fr;}
+    .stats-grid, .book-row, .feature-grid, .quote-row{grid-template-columns:repeat(2,1fr);}
+    .hero h1{font-size:38px;}
+    .stack{height:260px;margin-top:20px;}
+    nav.wrap .navlinks{display:none;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .book, .shelf span{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <div class="logo"><span class="dot"></span>BookNest</div>
+    <div class="navlinks">
+      <a href="#discover">Discover</a>
+      <a href="#rooms">Reading Rooms</a>
+      <a href="#clubs">Clubs</a>
+      <a href="booknest-marketplace.html">Exchange</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="navcta">
+      <a class="btn btn-ghost" href="booknest-auth.html">Log in</a>
+      <a class="btn btn-brass" href="booknest-auth.html">Join free</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Est. for readers, by readers</span>
+      <h1 class="display">Your whole reading life, <em>under one lamp.</em></h1>
+      <p class="lede">Track every book, sink into a quiet room built for reading, swap paperbacks with people nearby, and find a club that's actually reading what you're reading.</p>
+      <div class="hero-actions">
+        <a class="btn btn-brass" href="booknest-auth.html">Start your shelf — it's free</a>
+        <a class="btn btn-ghost" href="booknest-dashboard.html">Take a look inside</a>
+      </div>
+      <p class="hero-note">No credit card. Import your Goodreads shelf in under a minute.</p>
+    </div>
+    <div class="stack" aria-hidden="true">
+      <div class="book b1"></div>
+      <div class="book b4"></div>
+      <div class="book b2"></div>
+      <div class="book b3"></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats wrap" style="padding:48px 32px;">
+  <div class="stats-grid">
+    <div class="stat"><b>184k</b><span>Books on shelves</span></div>
+    <div class="stat"><b>12.4k</b><span>Reading rooms opened this week</span></div>
+    <div class="stat"><b>3,900</b><span>Active book clubs</span></div>
+    <div class="stat"><b>61k</b><span>Successful exchanges</span></div>
+  </div>
+</section>
+
+<section id="discover">
+  <div class="wrap">
+    <div class="shelf" aria-hidden="true"></div>
+    <div class="section-head">
+      <span class="eyebrow">On the shelf this week</span>
+      <h2 class="display">Trending among readers like you</h2>
+      <p>Pulled from what the community is actually finishing, not just adding.</p>
+    </div>
+    <div class="book-row">
+      <div class="book-card"><div class="cover" style="--c1:#7fa0c2;--c2:#3f5876;"></div><h4>The Tide Room</h4><p>N. Okafor</p></div>
+      <div class="book-card"><div class="cover" style="--c1:#e8a33d;--c2:#a9762c;"></div><h4>Salt &amp; Marrow</h4><p>C. Vance</p></div>
+      <div class="book-card"><div class="cover" style="--c1:#b98fb0;--c2:#6f4f68;"></div><h4>Nine Winters</h4><p>Y. Park</p></div>
+      <div class="book-card"><div class="cover" style="--c1:#8fb996;--c2:#4c6c53;"></div><h4>The Understory</h4><p>R. Alvi</p></div>
+      <div class="book-card"><div class="cover" style="--c1:#c98f6a;--c2:#7a4f37;"></div><h4>Field Notes</h4><p>M. Duchêne</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="rooms">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Focus, without the friction</span>
+      <h2 class="display">A room for however you read</h2>
+      <p>Pick an ambience, set a timer, and either read alone or invite friends into a silent "Read Together" session.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">◐</div>
+        <h3>Eight ambient rooms</h3>
+        <p>Rainy window, mountain cabin, vintage study, midnight cityscape and more — each with its own ambient sound and light.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">◷</div>
+        <h3>Built-in Pomodoro</h3>
+        <p>Focus sessions with gentle chimes, streak tracking, and a live clock that never leaves your peripheral vision.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">◎</div>
+        <h3>Read Together</h3>
+        <p>See a friend's page-turn in real time, with zero chat — just quiet, shared company while you both read.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="clubs">
+  <div class="wrap">
+    <div class="shelf" aria-hidden="true"></div>
+    <div class="section-head">
+      <span class="eyebrow">Trending clubs</span>
+      <h2 class="display">Find people reading exactly what you are</h2>
+      <p>Vote on the next pick, discuss chapter by chapter, and never lose track of when the next meeting is.</p>
+    </div>
+    <div class="quote-row">
+      <div class="quote-card"><p>"I've finished more books in three months here than in the two years before it."</p><span>— Member, Slow Fiction Club</span></div>
+      <div class="quote-card"><p>"The reading rooms genuinely fixed my attention span."</p><span>— Member, Night Owls</span></div>
+      <div class="quote-card"><p>"Traded four paperbacks in my first week, all with people a few blocks away."</p><span>— Member, Exchange</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="challenge">
+      <div>
+        <span class="eyebrow">2026 Reading Challenge</span>
+        <h2 class="display">Set a goal. Watch the ring fill in.</h2>
+        <p>Yearly, monthly, or just "one more chapter tonight" — BookNest tracks it quietly in the background and celebrates the milestones that matter.</p>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="150" height="150">
+            <circle cx="75" cy="75" r="64" stroke="var(--hairline)" stroke-width="10" fill="none"/>
+            <circle cx="75" cy="75" r="64" stroke="var(--brass)" stroke-width="10" fill="none"
+              stroke-dasharray="402" stroke-dashoffset="120" stroke-linecap="round"/>
+          </svg>
+          <div class="ring-label"><b>32/40</b><span>books this year</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap" style="max-width:760px;">
+    <div class="section-head" style="margin:0 auto 40px;text-align:center;max-width:100%;">
+      <span class="eyebrow">Questions</span>
+      <h2 class="display">Before you join</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q"><span>Is BookNest free?</span><span class="plus">+</span></div>
+        <div class="faq-a">Yes — the library, reading rooms, clubs, and marketplace are all free. We may introduce optional perks later, but the core experience stays free.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How does the book exchange work?</span><span class="plus">+</span></div>
+        <div class="faq-a">List a book, get matched with someone nearby who wants it, message them to agree on a swap, then confirm in person with a QR code.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>Can I import my Goodreads shelves?</span><span class="plus">+</span></div>
+        <div class="faq-a">Yes, upload your Goodreads export CSV during onboarding and your shelves, ratings, and reviews carry straight over.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>Is my exchange address shared publicly?</span><span class="plus">+</span></div>
+        <div class="faq-a">No — location is only ever shown as an approximate radius until you and a match agree to meet.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="newsletter">
+  <div class="wrap">
+    <h2 class="display">One good page a week, in your inbox.</h2>
+    <p>Reading recommendations, club highlights, and challenge nudges. No spam, unsubscribe any time.</p>
+    <form class="nl-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent='You\'re on the list';">
+      <input type="email" placeholder="you@example.com" required />
+      <button type="submit" class="btn btn-brass" style="border:none;">Subscribe</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="logo" style="margin-bottom:14px;"><span class="dot"></span>BookNest</div>
+        <p style="color:var(--muted);font-size:13.5px;line-height:1.6;max-width:260px;">A nest for every book you'll ever read — library, rooms, clubs, and exchange, in one place.</p>
+      </div>
+      <div>
+        <h5>Product</h5>
+        <ul><li>Library</li><li>Reading Rooms</li><li>Book Clubs</li><li>Exchange</li></ul>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <ul><li>About</li><li>Careers</li><li>Press</li><li>Blog</li></ul>
+      </div>
+      <div>
+        <h5>Contact</h5>
+        <ul><li>hello@booknest.app</li><li>Support</li><li>Trust &amp; Safety</li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 BookNest. All rights reserved.</span>
+      <div class="social">
+        <span>Instagram</span><span>X</span><span>Discord</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // bookshelf spine dividers — generated once, deterministic per divider
+  document.querySelectorAll('.shelf').forEach((shelf) => {
+    const palette = ['#e8a33d','#7fa0c2','#b98fb0','#8fb996','#c98f6a','#4d6a89'];
+    let html = '';
+    for (let i = 0; i < 44; i++) {
+      const h = 18 + Math.round(Math.sin(i * 1.3) * 10 + Math.random() * 8);
+      const c = palette[i % palette.length];
+      html += `<span style="height:${h}px;background:${c};animation-delay:${i * 0.012}s"></span>`;
+    }
+    shelf.innerHTML = html;
+  });
+
+  // faq accordion
+  document.querySelectorAll('.faq-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach((i) => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+</script>
+
+</body>
+</html>
